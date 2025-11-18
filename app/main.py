@@ -4,7 +4,38 @@ import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 from sklearn.preprocessing import MinMaxScaler
-#from model.main import clean_data
+from openai import OpenAI
+import json
+from groq import Groq
+
+client = Groq(api_key=st.secrets["GROQ_API_KEY"])
+
+def explain_prediction_llm(prediction: str, features: dict):
+    client = Groq(api_key=st.secrets["GROQ_API_KEY"])
+
+    prompt = f"""
+You are an AI assistant helping users understand a machine learning prediction.
+
+Prediction: {prediction}
+User Features: {features}
+
+Explain:
+1. Why the model made this prediction
+2. What the result means
+3. What the user should do next
+4. Use simple, friendly language
+5. Keep it short and clear
+"""
+
+    response = client.chat.completions.create(
+        model="llama3-70b-versatile",
+        messages=[
+            {"role": "system", "content": "You explain ML predictions clearly."},
+            {"role": "user", "content": prompt},
+        ]
+    )
+
+    return response.choices[0].message["content"]
 
 def clean_data():
     # Fetching and cleaning the data
@@ -75,7 +106,7 @@ def get_scaled_values(input_dict):
     for key, value in input_dict.items():
         max_val = X[key].max()
         min_val = X[key].min()
-        scaled_value = (value - min_val/ max_val - min_val)
+        scaled_value = (value - min_val) / (max_val - min_val)
         scaled_dict[key] = scaled_value
 
     return scaled_dict
@@ -144,22 +175,29 @@ def add_predictions(input_data):
 
     prediction = model.predict(input_array_scaled)
 
-    st.subheader("Cell cluster prediction")
-    st.write("The cell cluster is: ")
 
-    if prediction[0] == 0:
-        st.write("Benign")
-    else:
-        st.write("Malicious")
 
-    #st.write(prediction)
-    st.write("The probability of being Benign: ", model.predict_proba(input_array_scaled)[0][0])
-    st.write("The probability of being Malicious: ", model.predict_proba(input_array_scaled)[0][1])
+    prediction = model.predict(input_array_scaled)[0]
+    proba = model.predict_proba(input_array_scaled)[0]
 
-    st.write("This app can assist medical professionals in making diagnosis. It should not be used as a" \
-    " substitute for professional diagnosis.")
+    # Convert prediction to label
+    prediction_label = "Benign" if prediction == 0 else "Malignant"
 
-    
+    st.subheader("Cell Cluster Prediction")
+    st.write(f"The model predicts: **{prediction_label}**")
+
+    probabilities = {
+        "benign": float(proba[0]),
+        "malignant": float(proba[1])
+    }
+
+    st.write("Benign probability:", probabilities["benign"])
+    st.write("Malignant probability:", probabilities["malignant"])
+
+    st.info("This tool assists doctors and should not replace professional diagnosis.")
+
+    return prediction_label, probabilities
+  
 
 def main():
     st.set_page_config(
@@ -186,7 +224,12 @@ def main():
         radar_chart = get_radar_chart(input_data)
         st.plotly_chart(radar_chart)
     with col2:
-        add_predictions(input_data)
+        prediction_label, probabilities = add_predictions(input_data)
+
+# Chatbot Section
+    if st.button("Explain Prediction"):
+        explanation = explain_prediction_llm(prediction_label, input_data)
+        st.write(explanation)
 
 
 
