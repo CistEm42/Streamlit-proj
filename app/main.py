@@ -28,14 +28,14 @@ Explain:
 """
 
     response = client.chat.completions.create(
-        model="llama3-70b-versatile",
+        model="llama-3.3-70b-versatile",
         messages=[
             {"role": "system", "content": "You explain ML predictions clearly."},
             {"role": "user", "content": prompt},
         ]
     )
 
-    return response.choices[0].message["content"]
+    return response.choices[0].message.content
 
 def clean_data():
     # Fetching and cleaning the data
