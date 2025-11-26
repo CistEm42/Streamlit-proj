@@ -8,34 +8,34 @@ from openai import OpenAI
 import json
 from groq import Groq
 
-client = Groq(api_key=st.secrets["GROQ_API_KEY"])
+# client = Groq(api_key=st.secrets["GROQ_API_KEY"])
 
-def explain_prediction_llm(prediction: str, features: dict):
-    client = Groq(api_key=st.secrets["GROQ_API_KEY"])
+# def explain_prediction_llm(prediction: str, features: dict):
+#     client = Groq(api_key=st.secrets["GROQ_API_KEY"])
 
-    prompt = f"""
-You are an AI assistant helping users understand a machine learning prediction.
+#     prompt = f"""
+# You are an AI assistant helping users understand a machine learning prediction.
 
-Prediction: {prediction}
-User Features: {features}
+# Prediction: {prediction}
+# User Features: {features}
 
-Explain:
-1. Why the model made this prediction
-2. What the result means
-3. What the user should do next
-4. Use simple, friendly language
-5. Keep it short and clear
-"""
+# Explain:
+# 1. Why the model made this prediction
+# 2. What the result means
+# 3. What the user should do next
+# 4. Use simple, friendly language
+# 5. Keep it short and clear
+# """
 
-    response = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
-        messages=[
-            {"role": "system", "content": "You explain ML predictions clearly."},
-            {"role": "user", "content": prompt},
-        ]
-    )
+#     response = client.chat.completions.create(
+#         model="llama-3.3-70b-versatile",
+#         messages=[
+#             {"role": "system", "content": "You explain ML predictions clearly."},
+#             {"role": "user", "content": prompt},
+#         ]
+#     )
 
-    return response.choices[0].message.content
+#     return response.choices[0].message.content
 
 def clean_data():
     # Fetching and cleaning the data
